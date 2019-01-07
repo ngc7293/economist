@@ -67,6 +67,7 @@ try:
 
             'postdate': postdate.strftime("%Y-%m-%d at %H:%M:%SZ"),
             'getdate': datetime.datetime.utcnow().strftime("%Y-%m-%d at %H:%M:%SZ"),
+            'url': args.url
         }))
 
 except:
