@@ -1,0 +1,26 @@
+<html>
+<head>
+    <title>{title}</title>
+    <link rel="stylesheet" type="text/css" href="economist.css">
+</head>
+
+<body>
+    <img src="{image[source]}" alt="{image[alt]}">
+    <main>
+        <header>
+            <h1>{title}</h1>
+            <p>{subtitle}</p>
+        </header>
+            
+        <content>
+            {content}
+        </content>
+    </main>
+
+    <footer>
+        Posted on {postdate}<br/>
+        Archived on {getdate}<br/>
+        Original copy at <a href="{url}">{url}</a><br/>
+    </footer>
+</body>
+</html>
