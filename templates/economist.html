@@ -1,7 +1,7 @@
 <html>
 <head>
     <title>{{ title }}</title>
-    <link rel="stylesheet" type="text/css" href="economist.css">
+    <link rel="stylesheet" type="text/css" href="/economist.min.css">
 </head>
 
 <body>
@@ -13,7 +13,7 @@
         </header>
 
         <content>
-            {% for item in content %}<p>{{ item.rich }}</p>{% endfor %}
+            {% for item in content %}{{ item.rich }}{% endfor %}
         </content>
     </main>
 

@@ -7,9 +7,9 @@ _{{ subtitle }}_
 &nbsp;
 
 {% for item in content %}
->{{ item.text }}
+{{ item.text }}
 {% if not loop.last %}
->&nbsp;
+&nbsp;
 {% endif %}
 {% endfor %}
 

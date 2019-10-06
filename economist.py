@@ -9,11 +9,13 @@ import jinja2
 import bs4
 
 keep_tags = [
-    'small'
+    'small',
+    'strong',
+    'em'
 ]
 
-
 def sanitize(paragraph):
+    toptag = paragraph.name
     paragraph = paragraph.decode_contents()
 
     out = {
@@ -39,49 +41,59 @@ def sanitize(paragraph):
             out['rich'] += char
 
         i += 1
+    out['rich'] = '<{tag}>{content}</{tag}>'.format(tag=toptag, content=out['rich']) 
     if out['text'] == '':
         return {}
     return out
 
-parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--url', required=True)
-parser.add_argument('--ext', required=True, choices=['.html', '.md', '.reddit.md'])
-args = parser.parse_args()
+def convert(url, ext, flask=False):
+    response = requests.get(url)
+    soup = bs4.BeautifulSoup(response.text, features="lxml")
 
-response = requests.get(args.url)
-soup = bs4.BeautifulSoup(response.text, features="lxml")
+    content = soup.select('.main-content__clearfix')[0]
 
-content = soup.select('.main-content__clearfix')[0]
+    title = content.select('.flytitle-and-title__title')[0].extract().string
+    subtitle = content.select('.blog-post__description')[0].extract().string
+    image = content.select('.blog-post__image')[0].img.extract()
+    postdate = datetime.datetime.strptime(content.select('time.blog-post__datetime')[0].extract()['datetime'], '%Y-%m-%dT%H:%M:%SZ')
 
-title = content.select('.flytitle-and-title__title')[0].extract().string
-subtitle = content.select('.blog-post__rubric')[0].extract().string
-image = content.select('.blog-post__image')[0].img.extract()
-postdate = datetime.datetime.strptime(content.select('time.blog-post__datetime')[0].extract()['datetime'], '%Y-%m-%dT%H:%M:%SZ')
+    content = content.select('.blog-post__text')[0].extract()
+    paragraphs = [sanitize(tag) for tag in content.contents if tag.name in ['p', 'h2']]
+    paragraphs = [p for p in paragraphs if p]  # remove empty paragraphs
 
-content = content.select('.blog-post__text')[0].extract()
-paragraphs = [sanitize(tag) for tag in content.contents if tag.name == 'p']
-paragraphs = [p for p in paragraphs if p]  # remove empty paragraphs
+    if ext == '.html':
+        paragraphs[-1]['text'] = paragraphs[-1]['text'].replace('■', '')
+        paragraphs[-1]['rich'] = paragraphs[-1]['rich'].replace('■', '')
 
+    with open("templates/economist" + ext, 'r') as file:
+        template = jinja2.Template(file.read())
 
-with open("templates/economist" + args.ext, 'r') as file:
-    template = jinja2.Template(file.read())
+    with open('articles/' + url.split('/')[-1] + ext, 'w') as file:
+        file.write(template.render({
+            'title': title,
+            'subtitle': subtitle,
+            'image': {
+                'source': image['src'],
+                'alt': image['alt']
+            },
+            'content': paragraphs,
 
-with open('articles/' + args.url.split('/')[-1] + args.ext, 'w') as file:
-    file.write(template.render({
-        'title': title,
-        'subtitle': subtitle,
-        'image': {
-            'source': image['src'],
-            'alt': image['alt']
-        },
-        'content': paragraphs,
+            'postdate': postdate.strftime("%Y-%m-%d at %H:%M:%SZ"),
+            'getdate': datetime.datetime.utcnow().strftime("%Y-%m-%d at %H:%M:%SZ"),
+            'url': url,
+            'flask': flask
+        }))
 
-        'postdate': postdate.strftime("%Y-%m-%d at %H:%M:%SZ"),
-        'getdate': datetime.datetime.utcnow().strftime("%Y-%m-%d at %H:%M:%SZ"),
-        'url': args.url
-    }))
+    print('[{postdate}] {title}\033[0m'.format(**{
+            'title': title, 
+            'postdate': postdate}
+        ))
 
-print('[{postdate}] {title}\033[0m'.format(**{
-        'title': title, 
-        'postdate': postdate}
-    ))
+    return 'articles/' + url.split('/')[-1] + ext
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--url', required=True)
+    parser.add_argument('--ext', required=True, choices=['.html', '.md', '.reddit.md'])
+    args = parser.parse_args()
+    convert(args.url, args.ext)

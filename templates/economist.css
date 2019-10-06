@@ -3,15 +3,15 @@ body {
     font-variant-ligatures: none;    
     max-width: 1200px;
     margin: auto;
+    columns: 2;
+    column-gap: 2em;
+    padding: 1em 0;
 }
 
 img {
     width: 100%;
     padding-bottom: 1em;
-}
-
-main {
-    columns: 2;
+    margin-top: -1em;
 }
 
 header h1 {
@@ -26,8 +26,21 @@ header p {
 }
 
 content { 
+    font-size: 1.2em;
     text-align: justify;
     line-height: 1.6;
+}
+
+content p:last-child::after {
+    content: ' ■';
+    background: #e3120b;
+    display: inline-block;
+    height: .5625em;
+    margin: 0 0 0 .25rem;
+    text-indent: -17982px;
+    text-indent: -999rem;
+    vertical-align: middle;
+    width: .5625em;
 }
 
 footer {
@@ -37,12 +50,18 @@ footer {
     padding-bottom: 1em;
 }
 
-@media only screen and (max-width: 1000px) {
+@media only screen and (max-width: 900px) {
     body {
         margin: 0 1em 0 1em;
+        columns: 1;
     }
     main {
         text-align: left;
-        columns: 1;
+    }
+}
+
+@media only screen and (max-width: 1200px) {
+    body {
+        margin: 0 1em 0 1em;
     }
 }
